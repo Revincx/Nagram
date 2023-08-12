@@ -994,7 +994,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         if (currentChat != null) {
             blockCell = new TextCell(context);
             blockCell.setBackground(Theme.getSelectorDrawable(false));
-            blockCell.setVisibility(ChatObject.isChannel(currentChat) || currentChat.creator || ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat) ? View.VISIBLE : View.GONE);
+//            blockCell.setVisibility(ChatObject.isChannel(currentChat) || currentChat.creator || ChatObject.hasAdminRights(currentChat) && ChatObject.canChangeChatInfo(currentChat) ? View.VISIBLE : View.GONE);
             blockCell.setOnClickListener(v -> {
                 Bundle args = new Bundle();
                 args.putLong("chat_id", chatId);
@@ -1133,8 +1133,8 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
 
         if (currentChat != null) {
             if (!ChatObject.hasAdminRights(currentChat)) {
-                infoContainer.setVisibility(View.GONE);
-                settingsTopSectionCell.setVisibility(View.GONE);
+//                infoContainer.setVisibility(View.GONE);
+//                settingsTopSectionCell.setVisibility(View.GONE);
             }
 
             if (stickersCell == null) {
@@ -1928,6 +1928,8 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
         if (stickersCell != null && info != null) {
             stickersCell.setTextAndValue(LocaleController.getString(R.string.GroupStickers), info.stickerset != null ? info.stickerset.title : LocaleController.getString(R.string.Add), false);
         }
+
+        if (logCell != null && !ChatObject.hasAdminRights(currentChat)) logCell.setVisibility(View.GONE);
     }
 
     private ValueAnimator updateHistoryShowAnimator;

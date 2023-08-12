@@ -272,6 +272,7 @@ import tw.nekomimi.nekogram.utils.LangsKt;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
 import tw.nekomimi.nekogram.utils.ShareUtil;
 import tw.nekomimi.nekogram.utils.UIUtil;
+import xyz.nextalone.nagram.NaConfig;
 import xyz.nextalone.nagram.helper.MessageHelper;
 
 public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
@@ -9794,11 +9795,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         }
                     } else if (position == numberRow) {
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
-                        String value;
-                        if (user != null && user.phone != null && user.phone.length() != 0) {
-                            value = PhoneFormat.getInstance().format("+" + user.phone);
-                        } else {
-                            value = LocaleController.getString("NumberUnknown", R.string.NumberUnknown);
+                        String value = LocaleController.getString("NumberUnknown", R.string.NumberUnknown);
+                        if (!NekoConfig.hidePhone.Bool()) {
+                            if (user != null && user.phone != null && user.phone.length() != 0) {
+                                value = PhoneFormat.getInstance().format("+" + user.phone);
+                            }
+                        } else if (!TextUtils.isEmpty(user.username)) {
+                            value = "@" + user.username;
                         }
                         detailCell.setTextAndValue(value, LocaleController.getString("TapToChangePhone", R.string.TapToChangePhone), true);
                         detailCell.setContentDescriptionValueFirst(false);
