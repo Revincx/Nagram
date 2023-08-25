@@ -724,6 +724,9 @@ public class AndroidUtilities {
     public static void getViewPositionInParent(View view, ViewGroup parent, float[] pointPosition) {
         pointPosition[0] = 0;
         pointPosition[1] = 0;
+        if (view == null || parent == null) {
+            return;
+        }
         View currentView = view;
         while (currentView != parent) {
             //fix strange offset inside view pager
@@ -750,6 +753,22 @@ public class AndroidUtilities {
         }
         CountDownLatch countDownLatch = new CountDownLatch(1);
         PixelCopy.request(surfaceView, surfaceBitmap, copyResult -> {
+            countDownLatch.countDown();
+        }, Utilities.searchQueue.getHandler());
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static void getBitmapFromSurface(Surface surface, Bitmap surfaceBitmap) {
+        if (surface == null || !surface.isValid()) {
+            return;
+        }
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        PixelCopy.request(surface, surfaceBitmap, copyResult -> {
             countDownLatch.countDown();
         }, Utilities.searchQueue.getHandler());
         try {
@@ -6028,5 +6047,13 @@ public class AndroidUtilities {
         clone.flip();
         clone.position(position);
         return clone;
+    }
+
+    public static void checkAndroidTheme(Context context, boolean open) {
+        // this hack is done to support prefers-color-scheme in webviews 🤦
+        if (context == null) {
+            return;
+        }
+        context.setTheme(Theme.isCurrentThemeDark() && open ? R.style.Theme_TMessages_Dark : R.style.Theme_TMessages);
     }
 }
