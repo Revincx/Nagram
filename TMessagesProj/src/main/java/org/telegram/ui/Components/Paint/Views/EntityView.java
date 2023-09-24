@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.os.Build;
+import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
@@ -70,8 +71,8 @@ public class EntityView extends FrameLayout {
     private float previousLocationX,  previousLocationY;
     private float previousLocationX2, previousLocationY2;
     private float previousLocationCX,  previousLocationCY;
-    private boolean hasPanned = false;
-    private boolean hasReleased = false;
+    public boolean hasPanned = false;
+    public boolean hasReleased = false;
     private boolean hasTransformed = false;
     private boolean announcedDrag = false;
     private boolean announcedMultitouchDrag = false;
@@ -488,7 +489,7 @@ public class EntityView extends FrameLayout {
         if (parent != null) {
             int newStickyX = STICKY_NONE;
             if (!lastIsMultitouch) {
-                if (Math.abs(position.x - parent.getMeasuredWidth() / 2f) <= dp(STICKY_TRIGGER_DP) && position.y < parent.getMeasuredHeight() - dp(112 + 64)) {
+                if (Math.abs(position.x - parent.getMeasuredWidth() / 2f) <= dp(STICKY_TRIGGER_DP) && position.y < parent.getMeasuredHeight() - dp(112)) {
                     newStickyX = STICKY_CENTER;
                 } else if (Math.abs(position.x - (width() / 2f + getStickyPaddingLeft()) * getScaleX() - dp(STICKY_PADDING_X_DP)) <= dp(STICKY_TRIGGER_DP)) {
                     newStickyX = STICKY_START;
@@ -774,6 +775,10 @@ public class EntityView extends FrameLayout {
             selectAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
             selectAnimator.start();
         }
+    }
+
+    public boolean isSelectedProgress() {
+        return isSelected() || selectT > 0;
     }
 
     private ViewGroup lastSelectionContainer;
