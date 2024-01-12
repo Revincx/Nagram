@@ -40,11 +40,6 @@ jobs:
             TMessagesProj/jni/ffmpeg/build
             TMessagesProj/jni/libvpx/build
           key: ${{ hashFiles('ffmpeg_status', 'libvpx_status', 'TMessagesProj/jni/*ffmpeg*.sh', 'TMessagesProj/jni/*libvpx*.sh', 'TMessagesProj/jni/patches/ffmpeg/*') }}
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
       - name: Setup Android SDK Tools
         uses: android-actions/setup-android@v3
         if: steps.cache.outputs.cache-hit != 'true'
@@ -55,7 +50,8 @@ jobs:
             ndk-version: r21e
             link-to-sdk: true
             local-cache: true
-      - run: |
+      - name: Save NDK to Properties
+        run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Native Build
@@ -82,18 +78,18 @@ jobs:
           path: |
             TMessagesProj/jni/boringssl/build
           key: ${{ hashFiles('boringssl_status') }}
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
       - name: Setup Android SDK Tools
         uses: android-actions/setup-android@v3
         if: steps.cache.outputs.cache-hit != 'true'
       - name: Install NDK
         if: steps.cache.outputs.cache-hit != 'true'
+        uses: nttld/setup-ndk@v1
+        with:
+            ndk-version: r21e
+            link-to-sdk: true
+            local-cache: true
+      - name: Save NDK to Properties
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Native Build
@@ -157,8 +153,13 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
       - name: Install NDK
         if: steps.cache.outputs.cache-hit != 'true'
+        uses: nttld/setup-ndk@v1
+        with:
+            ndk-version: r21e
+            link-to-sdk: true
+            local-cache: true
+      - name: Save NDK to Properties
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Fix BoringSSL
@@ -189,18 +190,18 @@ jobs:
           path: |
             TMessagesProj/libs/libv2ray.aar
           key: ${{ hashFiles('bin/libs/v2ray/*', 'v2ray_status') }}
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
       - name: Setup Android SDK Tools
         uses: android-actions/setup-android@v3
         if: steps.cache.outputs.cache-hit != 'true'
       - name: Install NDK
         if: steps.cache.outputs.cache-hit != 'true'
+        uses: nttld/setup-ndk@v1
+        with:
+            ndk-version: r21e
+            link-to-sdk: true
+            local-cache: true
+      - name: Save NDK to Properties
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Install Golang
@@ -229,19 +230,20 @@ jobs:
           path: |
             TMessagesProj/libs/ss-rust-release.aar
           key: ${{ hashFiles('shadowsocks_status') }}
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
       - name: Setup Android SDK Tools
         uses: android-actions/setup-android@v3
         if: steps.cache.outputs.cache-hit != 'true'
       - name: Install NDK
         if: steps.cache.outputs.cache-hit != 'true'
+        uses: nttld/setup-ndk@v1
+        with:
+            ndk-version: r21e
+            link-to-sdk: true
+            local-cache: true
+      - name: Save NDK to Properties
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Install Rust
         if: steps.cache.outputs.cache-hit != 'true'
@@ -267,18 +269,18 @@ jobs:
           path: |
             TMessagesProj/libs/ssr-libev-release.aar
           key: ${{ hashFiles('shadowsocksr_status') }}
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
       - name: Setup Android SDK Tools
         uses: android-actions/setup-android@v3
         if: steps.cache.outputs.cache-hit != 'true'
       - name: Install NDK
         if: steps.cache.outputs.cache-hit != 'true'
+        uses: nttld/setup-ndk@v1
+        with:
+            ndk-version: r21e
+            link-to-sdk: true
+            local-cache: true
+      - name: Save NDK to Properties
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Native Build
@@ -301,16 +303,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'
       - name: Setup Android SDK Tools
         uses: android-actions/setup-android@v3
       - name: Install NDK
+        uses: nttld/setup-ndk@v1
+        with:
+            ndk-version: r21e
+            link-to-sdk: true
+            local-cache: true
+      - name: Save NDK to Properties
         run: |
-          echo "y" | sudo ${ANDROID_HOME}/cmdline-tools/11.0/bin/sdkmanager --install "ndk;21.4.7075529" --sdk_root=${ANDROID_SDK_ROOT}
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/21.4.7075529" >> local.properties
       - name: Fetch Status
