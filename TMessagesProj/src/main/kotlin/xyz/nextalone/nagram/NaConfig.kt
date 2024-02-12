@@ -500,6 +500,24 @@ object NaConfig {
             ConfigItem.configTypeInt,
             0
         )
+    val disableMarkdown =
+        addConfig(
+            "DisableMarkdown",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val disableClickProfileGalleryView =
+        addConfig(
+            "DisableClickProfileGalleryView",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val showSmallGIF =
+        addConfig(
+            "ShowSmallGIF",
+            ConfigItem.configTypeBool,
+            false
+        )
 
     private fun addConfig(
         k: String,

@@ -1527,7 +1527,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                             createQualityItem(popupLayout);
                         }
 
-                        if (!unsupported && allowShare) {
+                        if (!unsupported && (allowShare || true)) {
                             if (UserConfig.getInstance(currentAccount).isPremium() || true) {
                                 ActionBarMenuItem.addItem(popupLayout, R.drawable.msg_gallery, LocaleController.getString("SaveToGallery", R.string.SaveToGallery), false, resourcesProvider).setOnClickListener(v -> {
                                     saveToGallery();
@@ -1824,7 +1824,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
 
     private void createQualityItem(ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout) {
         final boolean qualityFull = MessagesController.getInstance(currentAccount).storyQualityFull;
-        if (UserConfig.getInstance(currentAccount).isPremium()) {
+        if (UserConfig.getInstance(currentAccount).isPremium() || true) {
             ActionBarMenuItem.addItem(popupLayout, qualityFull ? R.drawable.menu_quality_sd : R.drawable.menu_quality_hd, LocaleController.getString(qualityFull ? R.string.StoryQualityDecrease : R.string.StoryQualityIncrease), false, resourcesProvider).setOnClickListener(v -> {
                 final boolean newQualityFull = !qualityFull;
                 MessagesController.getInstance(currentAccount).setStoryQuality(newQualityFull);
