@@ -1126,8 +1126,13 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             return super.onSetAlpha(alpha);
         }
 
+        private VirtualViewHelper virtualViewHelper;
+
         public ControlsView(Context context) {
             super(context);
+
+            virtualViewHelper = new VirtualViewHelper(this);
+            ViewCompat.setAccessibilityDelegate(this, virtualViewHelper);
 
             periodDrawable = new CaptionContainerView.PeriodDrawable();
             periodDrawable.setCallback(this);
@@ -1552,6 +1557,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
         }
 
+        @Override
+        protected boolean dispatchHoverEvent(MotionEvent event) {
+            return super.dispatchHoverEvent(event) || virtualViewHelper.dispatchHoverEvent(event);
+        }
+
         public void updateColors() {
             periodDrawable.updateColors(
                 getThemedColor(Theme.key_chat_messagePanelVoiceLock),
@@ -1633,6 +1643,53 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         @Override
         protected boolean verifyDrawable(@NonNull Drawable who) {
             return who == periodDrawable || super.verifyDrawable(who);
+        }
+
+
+        private class VirtualViewHelper extends ExploreByTouchHelper {
+
+            public VirtualViewHelper(@NonNull View host) {
+                super(host);
+            }
+
+            @Override
+            protected int getVirtualViewAt(float x, float y) {
+                if (sendButtonVisible && recordCircle != null && pauseRect.contains(x, y)) {
+                    return 2;
+                }
+                if (onceVisible && (recordCircle != null && snapAnimationProgress > .1f) && onceRect.contains(x, y)) {
+                    return 4;
+                }
+                return HOST_ID;
+            }
+
+            @Override
+            protected void getVisibleVirtualViews(List<Integer> list) {
+                if (sendButtonVisible) {
+                    list.add(2);
+                }
+                if (onceVisible && (recordCircle != null && snapAnimationProgress > .1f)) {
+                    list.add(4);
+                }
+            }
+
+            @Override
+            protected void onPopulateNodeForVirtualView(int id, @NonNull AccessibilityNodeInfoCompat info) {
+                if (id == 2) {
+                    rect.set((int) pauseRect.left, (int) pauseRect.top, (int) pauseRect.right, (int) pauseRect.bottom);
+                    info.setBoundsInParent(rect);
+                    info.setText(LocaleController.getString(transformToSeekbar > .5f ? R.string.AccActionResume : R.string.AccActionPause));
+                } else if (id == 4) {
+                    rect.set((int) onceRect.left, (int) onceRect.top, (int) onceRect.right, (int) onceRect.bottom);
+                    info.setBoundsInParent(rect);
+                    info.setText(LocaleController.getString(voiceOnce ? R.string.AccActionOnceDeactivate : R.string.AccActionOnceActivate));
+                }
+            }
+
+            @Override
+            protected boolean onPerformActionForVirtualView(int id, int action, @Nullable Bundle args) {
+                return true;
+            }
         }
     }
 
@@ -2858,6 +2915,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         sendButtonContainer.addView(audioVideoButtonContainer, LayoutHelper.createFrame(48, 48));
         audioVideoButtonContainer.setFocusable(true);
         audioVideoButtonContainer.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+
 //        audioVideoButtonContainer.setOnTouchListener((view, motionEvent) -> {
 //            createRecordCircle();
 //            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
@@ -3027,9 +3085,9 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 //        }
 
         audioVideoSendButton = new ChatActivityEnterViewAnimatedIconView(context, this);
-        audioVideoSendButton.setFocusable(true);
-        audioVideoSendButton.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
-        audioVideoSendButton.setAccessibilityDelegate(mediaMessageButtonsDelegate);
+        audioVideoSendButton.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+//        audioVideoSendButton.setFocusable(true);
+//        audioVideoSendButton.setAccessibilityDelegate(mediaMessageButtonsDelegate);
         padding = dp(9.5f);
         audioVideoSendButton.setPadding(padding, padding, padding, padding);
         audioVideoSendButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_messagePanelIcons), PorterDuff.Mode.SRC_IN));
@@ -3646,6 +3704,24 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 senderSelectPopupWindow = new SenderSelectPopup(getContext(), parentFragment, controller, chatFull, delegate.getSendAsPeers(), (recyclerView, senderView, peer) -> {
                     if (senderSelectPopupWindow == null) return;
                     if (chatFull != null) {
+
+                        var chat = controller.getChat(chatFull.id);
+                        if (chat != null && chat.creator) {
+                            var self = UserConfig.getInstance(currentAccount).getCurrentUser();
+
+                            if (peer.channel_id == chat.id) {
+                                var rights = chat.admin_rights;
+                                rights.anonymous = true;
+                                var rank = MessagesController.getInstance(currentAccount).getAdminRank(chat.id, self.id);
+                                MessagesController.getInstance(currentAccount).setUserAdminRole(chat.id, self, rights,  rank, false, parentFragment, false, false, null, null);
+                            } else if (peer.user_id == self.id) {
+                                var rights = chat.admin_rights;
+                                rights.anonymous = false;
+                                var rank = MessagesController.getInstance(currentAccount).getAdminRank(chat.id, self.id);
+                                MessagesController.getInstance(currentAccount).setUserAdminRole(chat.id, self, rights,  rank, false, parentFragment, false, false, null, null);
+                            }
+                        }
+
                         chatFull.default_send_as = peer;
                         updateSendAsButton();
                     }
@@ -4549,14 +4625,19 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             }
             if (sendWithoutSoundButtonValue) {
                 if (containsMarkdown(messageEditText.getText())) {
+                    boolean withoutMarkdown = NaConfig.INSTANCE.getDisableMarkdown().Bool();
                     ActionBarMenuSubItem sendWithoutMarkdownButton = new ActionBarMenuSubItem(getContext(), false, false, resourcesProvider);
-                    sendWithoutMarkdownButton.setTextAndIcon(LocaleController.getString("SendWithoutMarkdown", R.string.SendWithoutMarkdown), R.drawable.round_code_off_white);
+                    if (withoutMarkdown) {
+                        sendWithoutMarkdownButton.setTextAndIcon(LocaleController.getString("SendWithMarkdown", R.string.SendWithMarkdown), R.drawable.round_code_white);
+                    } else {
+                        sendWithoutMarkdownButton.setTextAndIcon(LocaleController.getString("SendWithoutMarkdown", R.string.SendWithoutMarkdown), R.drawable.round_code_off_white);
+                    }
                     sendWithoutMarkdownButton.setMinimumWidth(AndroidUtilities.dp(196));
                     sendWithoutMarkdownButton.setOnClickListener(v -> {
                         if (sendPopupWindow != null && sendPopupWindow.isShowing()) {
                             sendPopupWindow.dismiss();
                         }
-                        sendMessageInternal(true, 0, true, false, true);
+                        sendMessageInternal(true, 0, true, withoutMarkdown, true);
                     });
                     sendPopupLayout.addView(sendWithoutMarkdownButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                 } else if (canSendAsDice(messageEditText.getText().toString(), parentFragment, dialog_id)) {
@@ -4567,7 +4648,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                         if (sendPopupWindow != null && sendPopupWindow.isShowing()) {
                             sendPopupWindow.dismiss();
                         }
-                        sendMessageInternal(true, 0, true, true, false);
+                        sendMessageInternal(true, 0, true, null, false);
                     });
                     sendPopupLayout.addView(sendWithoutMarkdownButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48));
                 }
@@ -4601,7 +4682,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
 
         if (sendWhenOnlineButton != null) {
             TLRPC.User user = parentFragment.getCurrentUser();
-            if (user != null && !user.bot && !(user.status instanceof TLRPC.TL_userStatusEmpty) && !(user.status instanceof TLRPC.TL_userStatusOnline) && !(user.status instanceof TLRPC.TL_userStatusRecently)) {
+            if (user != null && !user.bot && !(user.status instanceof TLRPC.TL_userStatusEmpty) && !(user.status instanceof TLRPC.TL_userStatusOnline) && !(user.status instanceof TLRPC.TL_userStatusRecently) && !(user.status instanceof TLRPC.TL_userStatusLastMonth) && !(user.status instanceof TLRPC.TL_userStatusLastWeek)) {
                 sendWhenOnlineButton.setVisibility(VISIBLE);
             } else {
                 sendWhenOnlineButton.setVisibility(GONE);
@@ -6966,10 +7047,14 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     private boolean premiumEmojiBulletin = true;
 
     private void sendMessageInternal(boolean notify, int scheduleDate, boolean allowConfirm) {
-        sendMessageInternal(notify, scheduleDate, allowConfirm, true, true);
+        sendMessageInternal(notify, scheduleDate, allowConfirm, null, true);
     }
 
-    private void sendMessageInternal(boolean notify, int scheduleDate, boolean allowConfirm, boolean withMarkdown, boolean withGame) {
+    private void sendMessageInternal(boolean notify, int scheduleDate, boolean allowConfirm, Boolean withMarkdown, boolean withGame) {
+        boolean disableMarkdown = NaConfig.INSTANCE.getDisableMarkdown().Bool();
+        if (withMarkdown == null) {
+            withMarkdown = !disableMarkdown;
+        }
         if (slowModeTimer == Integer.MAX_VALUE && !isInScheduleMode()) {
             if (delegate != null) {
                 delegate.scrollToSendingMessage();
@@ -9093,6 +9178,11 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 openKeyboard();
             }
         } else {
+            // Na: DisableClickCommandToSend
+            if (NaConfig.INSTANCE.getDisableClickCommandToSend().Bool()) {
+                return;
+            }
+
             if (slowModeTimer > 0 && !isInScheduleMode()) {
                 if (delegate != null) {
                     delegate.onUpdateSlowModeButton(slowModeButton, true, slowModeButton.getText());

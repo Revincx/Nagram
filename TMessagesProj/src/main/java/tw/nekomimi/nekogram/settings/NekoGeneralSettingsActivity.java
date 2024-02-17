@@ -203,6 +203,8 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell header_chatblur = cellGroup.appendCell(new ConfigCellHeader(LocaleController.getString("ChatBlurAlphaValue")));
     private final AbstractConfigCell chatBlurAlphaValueRow = cellGroup.appendCell(new ConfigCellCustom("ChatBlurAlphaValue", ConfigCellCustom.CUSTOM_ITEM_CharBlurAlpha, NekoConfig.forceBlurInChat.Bool()));
 
+    private final AbstractConfigCell disableDialogsFloatingButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableDialogsFloatingButton()));
+    private final AbstractConfigCell centerActionBarTitleRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getCenterActionBarTitle()));
     private final AbstractConfigCell divider5 = cellGroup.appendCell(new ConfigCellDivider());
 
     private final AbstractConfigCell header6 = cellGroup.appendCell(new ConfigCellHeader(LocaleController.getString("PrivacyTitle")));
@@ -242,6 +244,17 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private ChatBlurAlphaSeekBar chatBlurAlphaSeekbar;
     private UndoView restartTooltip;
 
+    public NekoGeneralSettingsActivity() {
+        if (!NekoXConfig.isDeveloper()) {
+            cellGroup.rows.remove(hideSponsoredMessageRow);
+        }
+        if (!BuildVars.isGServicesCompiled) {
+            cellGroup.rows.remove(mapDriftingFixForGoogleMapsRow);
+        }
+
+        addRowsToMap(cellGroup);
+    }
+
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
@@ -255,7 +268,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     @Override
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setTitle(LocaleController.getString("General", R.string.General));
+        actionBar.setTitle(getTitle());
 
         if (AndroidUtilities.isTablet()) {
             actionBar.setOccupyStatusBar(false);
@@ -352,7 +365,8 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                             LocaleController.getString("ProviderMicrosoftTranslator", R.string.ProviderMicrosoftTranslator),
                             LocaleController.getString("ProviderMicrosoftTranslator", R.string.ProviderYouDao),
                             LocaleController.getString("ProviderMicrosoftTranslator", R.string.ProviderDeepLTranslate),
-                            LocaleController.getString("ProviderTelegramAPI", R.string.ProviderTelegramAPI)
+                            LocaleController.getString("ProviderTelegramAPI", R.string.ProviderTelegramAPI),
+                            LocaleController.getString("ProviderTranSmartTranslate", R.string.ProviderTranSmartTranslate),
                     }, (i, __) -> {
                         boolean needReset = NekoConfig.translationProvider.Int() - 1 != i && (NekoConfig.translationProvider.Int() == 1 || i == 0);
                         NekoConfig.translationProvider.setConfigInt(i + 1);
@@ -379,7 +393,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                 }
             }
         });
-        addRowsToMap(cellGroup);
         listView.setOnItemLongClickListener((view, position, x, y) -> {
             var holder = listView.findViewHolderForAdapterPosition(position);
             if (holder != null && listAdapter.isEnabled(holder)) {
@@ -657,6 +670,21 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     @Override
+    public int getBaseGuid() {
+        return 12000;
+    }
+
+    @Override
+    public int getDrawable() {
+        return R.drawable.msg_theme;
+    }
+
+    @Override
+    public String getTitle() {
+        return LocaleController.getString("General", R.string.General);
+    }
+
+    @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{EmptyCell.class, TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, TextDetailSettingsCell.class, NotificationsCheckCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
@@ -765,6 +793,9 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                                 case Translator.providerTelegram:
                                     value = LocaleController.getString("ProviderTelegramAPI", R.string.ProviderTelegramAPI);
                                     break;
+                                case Translator.providerTranSmart:
+                                    value = LocaleController.getString("ProviderTranSmartTranslate", R.string.ProviderTranSmartTranslate);
+                                    break;
                                 default:
                                     value = "Unknown";
                             }
@@ -830,13 +861,13 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     private void setCanNotChange() {
-        if (!NekoXConfig.isDeveloper())
-            cellGroup.rows.remove(hideSponsoredMessageRow);
+//        if (!NekoXConfig.isDeveloper())
+//            cellGroup.rows.remove(hideSponsoredMessageRow);
 
         if (!BuildVars.isGServicesCompiled) {
             NekoConfig.useOSMDroidMap.setConfigBool(true);
             ((ConfigCellTextCheck) useOSMDroidMapRow).setEnabled(false);
-            cellGroup.rows.remove(mapDriftingFixForGoogleMapsRow);
+//            cellGroup.rows.remove(mapDriftingFixForGoogleMapsRow);
         } else {
             if (NekoConfig.useOSMDroidMap.Bool())
                 ((ConfigCellTextCheck) mapDriftingFixForGoogleMapsRow).setEnabled(false);
