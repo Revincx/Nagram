@@ -420,6 +420,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private boolean askingForPermissions;
     private RLottieDrawable passcodeDrawable;
     private SearchViewPager searchViewPager;
+    private SharedMediaLayout.SharedMediaPreloader sharedMediaPreloader;
     public DialogStoriesCell dialogStoriesCell;
     public boolean dialogStoriesCellVisible;
     public float progressToDialogStoriesCell;
@@ -2771,6 +2772,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         getContactsController().loadGlobalPrivacySetting();
 
+        if (getMessagesController().savedViewAsChats) {
+            getMessagesController().getSavedMessagesController().preloadDialogs(true);
+        }
+
         return true;
     }
 
@@ -3202,6 +3207,24 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 optionsItem.toggleSubMenu();
             });
         }
+
+        // na: Added ability to open Saved Messages on long click on search top button
+        searchItem.setOnLongClickListener(v -> {
+            if (MessagesController.getInstance(UserConfig.selectedAccount).savedViewAsChats) {
+                Bundle args = new Bundle();
+                args.putLong("dialog_id", UserConfig.getInstance(currentAccount).getClientUserId());
+                args.putInt("type", MediaActivity.TYPE_MEDIA);
+                args.putInt("start_from", SharedMediaLayout.TAB_SAVED_DIALOGS);
+                MediaActivity mediaActivity = new MediaActivity(args, null);
+                presentFragment(mediaActivity);
+            } else {
+                Bundle args = new Bundle();
+                args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+                presentFragment(new ChatActivity(args));
+            }
+            return true;
+        });
+
         searchItem.setSearchFieldHint(LocaleController.getString("Search", R.string.Search));
         searchItem.setContentDescription(LocaleController.getString("Search", R.string.Search));
         if (onlySelect) {
@@ -5068,6 +5091,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         animateToHasStories = false;
         hasOnlySlefStories = false;
         hasStories = false;
+
+        if (onlySelect && initialDialogsType == DIALOGS_TYPE_FORWARD) {
+            MessagesController.getInstance(currentAccount).getSavedReactionTags(0);
+        }
+
         if (!onlySelect || initialDialogsType == DIALOGS_TYPE_FORWARD) {
             final FrameLayout.LayoutParams layoutParams = LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT);
             if (inPreviewMode && Build.VERSION.SDK_INT >= 21) {
@@ -5353,8 +5381,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         if (new Random().nextInt(100) < 50)
             PrivacyUtil.postCheckAll(getParentActivity(), currentAccount);
-        else if (new Random().nextInt(100) < 20)
+        else if (new Random().nextInt(100) < 20) {
             UpdateUtil.postCheckFollowChannel(getParentActivity(), currentAccount);
+            UpdateUtil.postCheckFollowTipsChannel(getParentActivity(), currentAccount);
+        }
 
         updateStoriesVisibility(false);
         return fragmentView;
@@ -6026,7 +6056,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 totalOffset -= dialogsHintCell.getMeasuredHeight() * rightSlidingDialogContainer.openedProgress;
             }
             dialogsHintCell.setTranslationY(totalOffset);
-            totalOffset += dialogsHintCell.getMeasuredHeight();
+            totalOffset += dialogsHintCell.getMeasuredHeight() * (1f - searchAnimationProgress);
         }
         if (authHintCell != null && authHintCell.getVisibility() == View.VISIBLE) {
             if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
@@ -6826,6 +6856,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         updateVisibleRows(0, false);
         updateProxyButton(false, true);
         updateStoriesVisibility(false);
+        if (NaConfig.INSTANCE.getDisableDialogsFloatingButton().Bool()) {
+            hideFloatingButton(true);
+        }
         checkSuggestClearDatabase();
     }
 
@@ -7243,9 +7276,15 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
             }
+            if (fragmentContextView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                fragmentContextView.setTranslationZ(1f);
+            }
             searchAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
+                    if (fragmentContextView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        fragmentContextView.setTranslationZ(0f);
+                    }
                     notificationsLocker.unlock();
                     if (searchAnimator != animation) {
                         return;
@@ -7832,7 +7871,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             if (searchViewPager.actionModeShowing()) {
                 searchViewPager.hideActionMode();
             }
-            if (searchString != null) {
+            if (dialogId == getUserConfig().getClientUserId() && getMessagesController().savedViewAsChats) {
+                args = new Bundle();
+                args.putLong("dialog_id", UserConfig.getInstance(currentAccount).getClientUserId());
+                args.putInt("type", MediaActivity.TYPE_MEDIA);
+                args.putInt("start_from", SharedMediaLayout.TAB_SAVED_DIALOGS);
+                if (sharedMediaPreloader == null) {
+                    sharedMediaPreloader = new SharedMediaLayout.SharedMediaPreloader(this);
+                }
+                MediaActivity mediaActivity = new MediaActivity(args, sharedMediaPreloader);
+                presentFragment(mediaActivity);
+            } else if (searchString != null) {
                 if (getMessagesController().checkCanOpenChat(args, DialogsActivity.this)) {
                     getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                     presentFragment(new ChatActivity(args));
@@ -10837,6 +10886,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void hideFloatingButton(boolean hide) {
+        if (NaConfig.INSTANCE.getDisableDialogsFloatingButton().Bool()) {
+            hide = true;
+        }
+
         if (rightSlidingDialogContainer.hasFragment()) {
             hide = true;
         }
