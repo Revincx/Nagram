@@ -3,12 +3,12 @@ import cn.hutool.core.util.RuntimeUtil
 apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
 
-def verName = "10.6.4"
-def verCode = 1159
+def verName = "10.8.1"
+def verCode = 1161
 
 
-def officialVer = "10.6.4"
-def officialCode = 4365
+def officialVer = "10.8.1"
+def officialCode = 4404
 
 def serviceAccountCredentialsFile = rootProject.file("service_account_credentials.json")
 
@@ -307,7 +307,12 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            outputFileName = outputFileName.replace("TMessagesProj", "Nagram-v" + versionName).replace("-release", "")
+            String gramName = "Nagram"
+            String first = String.format("%s-v%s(%s)", gramName, versionName, versionCode)
+            String name = outputFileName.replace("TMessagesProj", first)
+            name = name.replace("-release", "")
+            name = name.replace("-mini", "")
+            outputFileName = name
         }
     }
 
