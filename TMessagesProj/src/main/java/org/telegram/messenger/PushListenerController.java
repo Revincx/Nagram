@@ -146,6 +146,11 @@ public class PushListenerController {
                     jsonString = new String(strBytes);
                     JSONObject json = new JSONObject(jsonString);
 
+                    if (ApplicationLoader.applicationLoaderInstance != null && ApplicationLoader.applicationLoaderInstance.consumePush(currentAccount, json)) {
+                        countDownLatch.countDown();
+                        return;
+                    }
+
                     if (json.has("loc_key")) {
                         loc_key = json.getString("loc_key");
                     } else {
@@ -1430,16 +1435,7 @@ public class PushListenerController {
     public static IPushListenerServiceProvider getProvider() {
         if (instance != null)
             return instance;
-        if (BuildVars.isGServicesCompiled) {
-            try {
-                instance = (IPushListenerServiceProvider) Class.forName("org.telegram.messenger.GooglePushListenerServiceProvider").newInstance();
-            } catch (Exception e) {
-                FileLog.e(e);
-                instance = new DummyPushProvider();
-            }
-        } else {
-            instance = new DummyPushProvider();
-        }
+        instance = new GooglePushListenerServiceProvider();
         return instance;
     }
 

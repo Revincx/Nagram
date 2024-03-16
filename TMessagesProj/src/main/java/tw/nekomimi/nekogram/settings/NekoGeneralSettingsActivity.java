@@ -124,7 +124,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell useIPv6Row = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useIPv6));
     private final AbstractConfigCell useProxyItemRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useProxyItem));
     private final AbstractConfigCell hideProxyByDefaultRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideProxyByDefault));
-    private final AbstractConfigCell autoUpdateSubInfoRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.autoUpdateSubInfo));
+//    private final AbstractConfigCell autoUpdateSubInfoRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.autoUpdateSubInfo));
     private final AbstractConfigCell useSystemDNSRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useSystemDNS));
     private final AbstractConfigCell disableProxyWhenVpnEnabledRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableProxyWhenVpnEnabled()));
     private final AbstractConfigCell customDoHRow = cellGroup.appendCell(new ConfigCellTextInput(null, NekoConfig.customDoH, "https://1.0.0.1/dns-query", null));
@@ -247,9 +247,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     public NekoGeneralSettingsActivity() {
         if (!NekoXConfig.isDeveloper()) {
             cellGroup.rows.remove(hideSponsoredMessageRow);
-        }
-        if (!BuildVars.isGServicesCompiled) {
-            cellGroup.rows.remove(mapDriftingFixForGoogleMapsRow);
         }
 
         addRowsToMap(cellGroup);
@@ -864,14 +861,8 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
 //        if (!NekoXConfig.isDeveloper())
 //            cellGroup.rows.remove(hideSponsoredMessageRow);
 
-        if (!BuildVars.isGServicesCompiled) {
-            NekoConfig.useOSMDroidMap.setConfigBool(true);
-            ((ConfigCellTextCheck) useOSMDroidMapRow).setEnabled(false);
-//            cellGroup.rows.remove(mapDriftingFixForGoogleMapsRow);
-        } else {
-            if (NekoConfig.useOSMDroidMap.Bool())
-                ((ConfigCellTextCheck) mapDriftingFixForGoogleMapsRow).setEnabled(false);
-        }
+        if (NekoConfig.useOSMDroidMap.Bool())
+            ((ConfigCellTextCheck) mapDriftingFixForGoogleMapsRow).setEnabled(false);
 
         if (NekoConfig.useTelegramTranslateInChat.Bool())
             ((ConfigCellCustom) translationProviderRow).setEnabled(false);

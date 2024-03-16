@@ -41,10 +41,12 @@ import androidx.multidex.MultiDex;
 
 import androidx.multidex.MultiDex;
 
+import org.json.JSONObject;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.ui.Components.Premium.boosts.BoostRepository;
@@ -55,6 +57,7 @@ import org.telegram.ui.LauncherIconController;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -112,17 +115,7 @@ public class ApplicationLoader extends Application {
 
     public static ILocationServiceProvider getLocationServiceProvider() {
         if (locationServiceProvider == null) {
-            if (BuildVars.isGServicesCompiled) {
-                try {
-                    locationServiceProvider = (ILocationServiceProvider) Class.forName("org.telegram.messenger.GoogleLocationProvider").newInstance();
-                    locationServiceProvider.init(applicationContext);
-                } catch (Exception e) {
-                    FileLog.e("Failed to load GoogleLocationService Provider from gservices", e);
-                    locationServiceProvider = new ILocationServiceProvider.DummyLocationServiceProvider();
-                }
-            } else {
-                locationServiceProvider = new ILocationServiceProvider.DummyLocationServiceProvider();
-            }
+            locationServiceProvider = new GoogleLocationProvider();
         }
         return locationServiceProvider;
     }
@@ -132,16 +125,7 @@ public class ApplicationLoader extends Application {
             if (NekoConfig.useOSMDroidMap.Bool())
                 mapsProvider = new OSMDroidMapsProvider();
             else {
-                if (BuildVars.isGServicesCompiled) {
-                    try {
-                        mapsProvider = (IMapsProvider) Class.forName("org.telegram.messenger.GoogleMapsProvider").newInstance();
-                    } catch (Exception e) {
-                        FileLog.e("Failed to load Google Maps Provider from gservices", e);
-                        mapsProvider = new OSMDroidMapsProvider();
-                    }
-                } else {
-                    mapsProvider = new OSMDroidMapsProvider();
-                }
+                mapsProvider = new GoogleMapsProvider();
             }
         }
         return mapsProvider;
@@ -707,6 +691,46 @@ public class ApplicationLoader extends Application {
 
     public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenu, ViewGroup sideMenuContainer) {
         return new UpdateLayout(activity, sideMenu, sideMenuContainer);
+    }
+
+    public TLRPC.Update parseTLUpdate(int constructor) {
+        return null;
+    }
+
+    public void processUpdate(int currentAccount, TLRPC.Update update) {
+
+    }
+
+    public boolean onSuggestionFill(String suggestion, CharSequence[] output, boolean[] closeable) {
+        return false;
+    }
+
+    public boolean onSuggestionClick(String suggestion) {
+        return false;
+    }
+
+    public boolean extendDrawer(ArrayList<DrawerLayoutAdapter.Item> items) {
+        return false;
+    }
+
+    public boolean checkRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) {
+        return false;
+    }
+
+    public boolean consumePush(int account, JSONObject json) {
+        return false;
+    }
+
+    public void onResume() {
+
+    }
+
+    public boolean onPause() {
+        return false;
+    }
+
+    public BaseFragment openSettings(int n) {
+        return null;
     }
 
 }
