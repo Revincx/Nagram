@@ -9,7 +9,6 @@
 package org.telegram.messenger;
 
 import android.os.SystemClock;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 
@@ -139,6 +138,9 @@ public class NotificationCenter {
     public static final int recentEmojiStatusesUpdate = totalEvents++;
     public static final int updateSearchSettings = totalEvents++;
     public static final int updateTranscriptionLock = totalEvents++;
+    public static final int businessMessagesUpdated = totalEvents++;
+    public static final int quickRepliesUpdated = totalEvents++;
+    public static final int quickRepliesDeleted = totalEvents++;
 
     public static final int messageTranslated = totalEvents++;
     public static final int messageTranslating = totalEvents++;
@@ -233,7 +235,13 @@ public class NotificationCenter {
     public static final int userIsPremiumBlockedUpadted = totalEvents++;
     public static final int savedMessagesForwarded = totalEvents++;
     public static final int emojiKeywordsLoaded = totalEvents++;
+    public static final int smsJobStatusUpdate = totalEvents++;
     public static final int storyQualityUpdate = totalEvents++;
+    public static final int openBoostForUsersDialog = totalEvents++;
+    public static final int groupRestrictionsUnlockedByBoosts = totalEvents++;
+    public static final int chatWasBoostedByUser = totalEvents++;
+    public static final int groupPackUpdated = totalEvents++;
+    public static final int timezonesUpdated = totalEvents++;
 
     //global
     public static final int pushMessagesUpdated = totalEvents++;
