@@ -287,8 +287,10 @@ dependencies {
     compileOnly "com.google.android.play:core:$playCoreVersion"
 
     implementation 'com.google.android.gms:play-services-vision:20.1.3'
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
-    implementation 'com.google.android.gms:play-services-location:21.2.0'
+    debugImplementation 'com.google.android.gms:play-services-maps:18.1.0'
+    debugImplementation 'com.google.android.gms:play-services-location:20.0.0'
+    releaseImplementation 'com.google.android.gms:play-services-maps:18.1.0'
+    releaseImplementation 'com.google.android.gms:play-services-location:20.0.0'
 
     implementation "com.google.firebase:firebase-messaging:$fcmVersion"
     implementation "com.google.firebase:firebase-crashlytics:$crashlyticsVersion"
@@ -329,6 +331,13 @@ android {
         }
 
         def lib = "libtmessages.*.so"
+<<<<<<< HEAD
+=======
+        pickFirst "lib/x86/$lib"
+        pickFirst "lib/x86_64/$lib"
+        pickFirst "lib/armeabi-v7a/$lib"
+        pickFirst "lib/arm64-v8a/$lib"
+>>>>>>> 9c6537aa00bf3f739333c07c32ba28c52f0642b0
     }
     namespace "org.telegram.messenger"
     lint {
