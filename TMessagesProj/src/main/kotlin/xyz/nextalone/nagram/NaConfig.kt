@@ -548,6 +548,30 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val pushServiceType =
+        addConfig(
+            "PushServiceType",
+            ConfigItem.configTypeInt,
+            1
+        )
+    val pushServiceTypeInAppDialog =
+        addConfig(
+            "PushServiceTypeInAppDialog",
+            ConfigItem.configTypeBool,
+            true
+        )
+    val pushServiceTypeUnifiedGateway =
+        addConfig(
+            "PushServiceTypeUnifiedGateway",
+            ConfigItem.configTypeString,
+            "https://p2p.belloworld.it/"
+        )
+    val sendMp4DocumentAsVideo =
+        addConfig(
+            "SendMp4DocumentAsVideo",
+            ConfigItem.configTypeBool,
+            false
+        )
 
     private fun addConfig(
         k: String,

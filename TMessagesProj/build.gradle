@@ -1,8 +1,17 @@
 apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
 
+repositories {
+    maven {
+        url 'https://www.jitpack.io'
+        content {
+            includeModule 'com.github.UnifiedPush', 'android-connector'
+        }
+    }
+}
+
 def verName = "10.9.1"
-def verCode = 1163
+def verCode = 1164
 
 
 def officialVer = "10.9.1"
@@ -314,6 +323,8 @@ dependencies {
     implementation 'com.google.mlkit:language-id:17.0.5'
     // add for emoji
     implementation 'com.jaredrummler:truetypeparser-light:1.0.0'
+    // add for up
+    implementation 'com.github.UnifiedPush:android-connector:2.3.1'
 }
 
 apply plugin: "com.google.gms.google-services"
@@ -325,6 +336,7 @@ android {
     packagingOptions {
         jniLibs {
             excludes += ['/fabric/**', '/META-INF/native-image/**']
+            useLegacyPackaging true
         }
         resources {
             excludes += ['/fabric/**', '/META-INF/*.version', '/META-INF/*.kotlin_module', '/META-INF/native-image/**', '/builddef.lst', '/*.txt', '/DebugProbesKt.bin', '/okhttp3/internal/publicsuffix/NOTICE']
