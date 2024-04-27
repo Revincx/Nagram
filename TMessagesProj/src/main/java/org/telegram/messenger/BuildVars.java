@@ -47,7 +47,7 @@ public class BuildVars {
             BUILD_VERSION_STRING = BuildConfig.VERSION_NAME;
         }
 
-        if (!DEBUG_PRIVATE_VERSION && ApplicationLoader.applicationContext != null) {
+        if (ApplicationLoader.applicationContext != null) {
             SharedPreferences sharedPreferences = ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE);
             LOGS_ENABLED = DEBUG_VERSION = sharedPreferences.getBoolean("logsEnabled", DEBUG_VERSION);
         }
